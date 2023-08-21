@@ -6,17 +6,22 @@ from tkinter.filedialog import askopenfilename
 import pandas as pd
 from kafka import KafkaProducer
 import json
+from privacy.privacy import privacy
 
 ctk.set_appearance_mode("light")
 
 
-producer = KafkaProducer(
-    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-    bootstrap_servers=["localhost:9092", "localhost:9093", "localhost:9094"],
-)
+try:
+    producer = KafkaProducer(
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        bootstrap_servers=["localhost:9092", "localhost:9093", "localhost:9094"],
+    )
+except:
+    pass
+
 
 pharmacy_entries = None
-hospital_entries = None
+hospital_entries = {"heartdisease": {}, "diabetes": {}}
 
 
 class App(ctk.CTk):
@@ -92,6 +97,7 @@ class App(ctk.CTk):
         self.tab.add("Hospital")
 
         # pharmacy tab
+        """
         privacy_type = tk.StringVar(value="k-anonymity")
         k_anonymity = ctk.CTkRadioButton(
             self.tab.tab("Pharmacy"),
@@ -118,9 +124,10 @@ class App(ctk.CTk):
         k_anonymity.pack(pady=15)
         differential_privacy.pack()
         homomorphic_encryption.pack(pady=15)
-
+        """
         # hospital
         # 1 - methods
+        """
         methods = ctk.CTkFrame(master=self.tab.tab("Hospital"), corner_radius=20)
         privacy_type = tk.StringVar(value=self.method)
         k_anonymity = ctk.CTkRadioButton(
@@ -148,16 +155,23 @@ class App(ctk.CTk):
         differential_privacy.pack(expand=True)
         homomorphic_encryption.pack(expand=True)
         methods.pack(ipadx=15, ipady=15, fill="both", expand=True, pady=20)
+        """
         # 2 - data type
         datatype_frame = ctk.CTkFrame(master=self.tab.tab("Hospital"), corner_radius=20)
+        dataset_var = tk.StringVar(value="heartdisease")
         heart = ctk.CTkRadioButton(
-            datatype_frame, text="Heart disease", variable=privacy_type, value=0
+            datatype_frame,
+            text="Heart disease",
+            value="heartdisease",
+            variable=dataset_var,
+            command=self.set_dataset,
         )
         Diabetes = ctk.CTkRadioButton(
             datatype_frame,
             text="diabetes",
-            variable=privacy_type,
-            value=1,
+            value="diabetes",
+            variable=dataset_var,
+            command=lambda: self.set_dataset(dataset="diabetes"),
         )
         heart.pack(expand=True)
         Diabetes.pack(expand=True)
@@ -232,7 +246,17 @@ class App(ctk.CTk):
         global hospital_entries
         hospital_entries = {"heartdisease": {}, "diabetes": {}}
         DATASET_OPTION = {
-            "diabetes": [],
+            "diabetes": [
+                "Pregnancies",
+                "Glucose",
+                "BloodPressure",
+                "SkinThickness",
+                "Insulin",
+                "BMI",
+                "DiabetesPedigreeFunction",
+                "Age",
+                "Outcome",
+            ],
             "heartdisease": [
                 "age",
                 "sex",
@@ -321,31 +345,43 @@ class App(ctk.CTk):
 
     def read_dataframe(self):
         self.dataframe = None
-        try:
-            path = askopenfilename()
-            self.dataframe = pd.read_csv(path)
-            print(self.dataframe.columns)
-        except:
-            print("error in reading")
+        path = askopenfilename()
+        print(path)
+        self.dataframe = pd.read_csv(path)
+        self.stream_csv()
+        print(self.dataframe.columns)
 
     def set_method(self, method="k-anonymity"):
         self.method = method
         print(self.method)
 
+    def set_dataset(self, dataset="heartdisease"):
+        self.dataset = dataset
+        self.create_hospital_frame()
+        print("current dataset :", dataset)
+
     def stream_data(self):
         global producer
         data = {}
         if self.dataset == "symptoms":
+            print(pharmacy_entries)
             for key, value in pharmacy_entries.items():
                 data[key] = value.get()
                 print(key, value.get())
-        if self.dataset == "heartdisease":
+        else:
             print(hospital_entries[self.dataset])
             for key, value in hospital_entries[self.dataset].items():
                 data[key] = value.get()
                 print(key, value.get())
-        future = producer.send(self.dataset, data)
-        future.get(timeout=60)
+        future = producer.send(self.dataset, privacy(data, []))
+        future.get(timeout=30)
+
+    def stream_csv(self):
+        streamed_df = dict(self.dataframe)
+        for key,value in streamed_df.items():
+            streamed_df[key] = list(value)
+        future = producer.send(self.dataset, privacy(streamed_df, []))
+        future.get(timeout=30)
 
 
 App()

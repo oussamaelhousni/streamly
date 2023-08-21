@@ -14,22 +14,33 @@ queries = []
 TABLES = {}
 
 TABLES["heartdisease"] = [
-    ("age", "number"),
+    ("age", "float"),
     ("sex", "string"),
-    ("cp", "number"),
-    ("trestbps", "number"),
-    ("chol", "number"),
-    ("fbs", "number"),
-    ("restecg", "number"),
-    ("thalach", "number"),
-    ("exang", "number"),
-    ("oldpeak", "number"),
-    ("slope", "number"),
-    ("ca", "number"),
-    ("thal", "number"),
-    ("target", "number"),
+    ("cp", "float"),
+    ("trestbps", "float"),
+    ("chol", "float"),
+    ("fbs", "float"),
+    ("restecg", "float"),
+    ("thalach", "float"),
+    ("exang", "float"),
+    ("oldpeak", "float"),
+    ("slope", "float"),
+    ("ca", "float"),
+    ("thal", "float"),
+    ("target", "int"),
 ]
 
+TABLES["diabetes"] = [
+    ("Pregnancies", "float"),
+    ("Glucose", "float"),
+    ("BloodPressure", "float"),
+    ("SkinThickness", "float"),
+    ("Insulin", "float"),
+    ("BMI", "float"),
+    ("DiabetesPedigreeFunction", "float"),
+    ("Age", "float"),
+    ("Outcome", "int"),
+]
 
 for key in TABLES.keys():
     query = "CREATE TABLE `{}` (".format(key)
@@ -37,14 +48,18 @@ for key in TABLES.keys():
         if index == len(TABLES[key]) - 1:
             temp = (
                 " {} FLOAT )".format(item[0])
-                if item[1] == "number"
-                else "{} varchar(25) )".format(item[0])
+                if item[1] == "float"
+                else "{} VARCHAR(25) )".format(item[0])
+                if item[1] == "string"
+                else "{} INT )".format(item[0])
             )
         else:
             temp = (
                 " {} FLOAT ,".format(item[0])
-                if item[1] == "number"
-                else "{} varchar(25) ,".format(item[0])
+                if item[1] == "float"
+                else "{} VARCHAR(25) ,".format(item[0])
+                if item[1] == "string"
+                else "{} INT ,".format(item[0])
             )
         query += temp
     queries.append(query)

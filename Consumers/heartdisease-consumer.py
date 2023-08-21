@@ -2,7 +2,7 @@ from kafka import KafkaConsumer
 import json
 
 # Kafka configuration
-topic = "symptoms"
+topic = "heartdisease"
 
 # Create a Kafka consumer
 consumer = KafkaConsumer(
