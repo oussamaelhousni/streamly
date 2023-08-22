@@ -346,10 +346,9 @@ class App(ctk.CTk):
     def read_dataframe(self):
         self.dataframe = None
         path = askopenfilename()
-        print(path)
+        print("path", path)
         self.dataframe = pd.read_csv(path)
         self.stream_csv()
-        print(self.dataframe.columns)
 
     def set_method(self, method="k-anonymity"):
         self.method = method
@@ -377,8 +376,9 @@ class App(ctk.CTk):
         future.get(timeout=30)
 
     def stream_csv(self):
+        print("dataset", self.dataset)
         streamed_df = dict(self.dataframe)
-        for key,value in streamed_df.items():
+        for key, value in streamed_df.items():
             streamed_df[key] = list(value)
         future = producer.send(self.dataset, privacy(streamed_df, []))
         future.get(timeout=30)

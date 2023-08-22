@@ -15,7 +15,7 @@ TABLES = {}
 
 TABLES["heartdisease"] = [
     ("age", "float"),
-    ("sex", "string"),
+    ("sex", "int"),
     ("cp", "float"),
     ("trestbps", "float"),
     ("chol", "float"),

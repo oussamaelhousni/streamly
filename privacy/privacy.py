@@ -20,11 +20,29 @@ def privacy(dataframe, columns_to_delete):
     if type(dataframe) == dict:
         for column in columns_to_delete:
             dataframe.pop(column)
+        length = None
+        try:
+            length = len(dataframe[list(dataframe.keys())[0]])
+            print("wow")
+        except:
+            pass
+        print("length", length)
+
         for key, value in dataframe.items():
-            if type(value) == str:
-                dataframe[key] = generalize_string(value)
+            if length is not None:
+                for i in range(length):
+                    if type(value[i]) == str:
+                        dataframe[key][i] = generalize_string(value[i])
+                    else:
+                        if key.lower() not in ["outcome", "target"]:
+                            dataframe[key][i] = add_noise(value[i], 0.1)
             else:
-                dataframe[key] = add_noise(value, 0.1)
+                print("second", value)
+                if type(value) == str:
+                    dataframe[key] = generalize_string(value)
+                else:
+                    if key.lower() not in ["outcome", "target", "sex"]:
+                        dataframe[key][i] = add_noise(value[i], 0.1)
         return dataframe
     new_df = dataframe.drop(columns_to_delete)
     for column in new_df.columns:
