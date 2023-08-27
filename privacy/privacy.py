@@ -23,7 +23,7 @@ def privacy(dataframe, columns_to_delete):
         length = None
         try:
             length = len(dataframe[list(dataframe.keys())[0]])
-            print("wow")
+            print("wow", dataframe)
         except:
             pass
         print("length", length)
@@ -42,7 +42,7 @@ def privacy(dataframe, columns_to_delete):
                     dataframe[key] = generalize_string(value)
                 else:
                     if key.lower() not in ["outcome", "target", "sex"]:
-                        dataframe[key][i] = add_noise(value[i], 0.1)
+                        dataframe[key] = add_noise(value, 0.1)
         return dataframe
     new_df = dataframe.drop(columns_to_delete)
     for column in new_df.columns:

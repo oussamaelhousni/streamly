@@ -370,7 +370,10 @@ class App(ctk.CTk):
         else:
             print(hospital_entries[self.dataset])
             for key, value in hospital_entries[self.dataset].items():
-                data[key] = value.get()
+                try:
+                    data[key] = float(value.get())
+                except:
+                    data[key] = value.get()
                 print(key, value.get())
         future = producer.send(self.dataset, privacy(data, []))
         future.get(timeout=30)
